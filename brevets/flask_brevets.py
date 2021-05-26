@@ -7,6 +7,8 @@ Replacement for RUSA ACP brevet time calculator
 import flask
 from flask import request
 import arrow  # Replacement for datetime, based on moment.js
+# import datetime
+
 import acp_times  # Brevet time calculations
 import config
 
@@ -42,24 +44,56 @@ def page_not_found(error):
 #   These return JSON, rather than rendering pages.
 #
 ###############
-@app.route("/_calc_times")
+@app.route("/_calc_times", methods=['POST'])
 def _calc_times():
     """
     Calculates open/close times from miles, using rules
     described at https://rusa.org/octime_alg.html.
     Expects one URL-encoded argument, the number of miles.
     """
-    app.logger.debug("Got a JSON request")
-    km = request.args.get('km', 999, type=float)
-    app.logger.debug("km={}".format(km))
-    app.logger.debug("request.args: {}".format(request.args))
+    content = request.get_json()
+    print(content)
+
+    km_list = content['km_list'];
+    distance = float(content['distance']);
+    begin_date = content['begin_date'];
+    # dt_begin_date = arrow.get(begin_date, 'YYYY-MM-DDTHH:mm');
+
+    print(begin_date);
+
+    result = [];
+
+
+    for info in km_list:
+        print(info)
+        n_km = float(info['km'])
+        open_time = acp_times.open_time(n_km, distance, begin_date).format('YYYY-MM-DDTHH:mm')
+
+        close_time = acp_times.close_time(n_km, distance, begin_date).format('YYYY-MM-DDTHH:mm')
+
+        result.append(
+            {
+                "index": int(info['index']),
+                "open_time": open_time,
+                "close_time": close_time
+            }
+        )
+
+
+    print(result)
+
+
+
     # FIXME!
     # Right now, only the current time is passed as the start time
     # and control distance is fixed to 200
     # You should get these from the webpage!
-    open_time = acp_times.open_time(km, 200, arrow.now().isoformat).format('YYYY-MM-DDTHH:mm')
-    close_time = acp_times.close_time(km, 200, arrow.now().isoformat).format('YYYY-MM-DDTHH:mm')
-    result = {"open": open_time, "close": close_time}
+    # open_time = acp_times.open_time(km, distance, begin_date.isoformat).format('YYYY-MM-DDTHH:mm')
+
+    # close_time = acp_times.close_time(km, distance, begin_date.isoformat).format('YYYY-MM-DDTHH:mm')
+    # open_time="2021-05-01T00:00"
+    # close_time="2021-07-01T00:00"
+    # result = {"open_time": open_time, "close_time": close_time}
     return flask.jsonify(result=result)
 
 

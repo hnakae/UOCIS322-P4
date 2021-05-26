@@ -49,7 +49,7 @@
          {% endif %}
          {% endwith %}
          <!-- Design on bootstrap grid -->
-         <form role="form">
+         <form role="form" method="POST" action="/calc_times">
             <div class="row">
                <div class="col-md-4">
                   <label>Distance</label>
@@ -62,11 +62,16 @@
                   </select>
                </div>
                <!-- columns 1 to 4  -->
-               <div class="col-md-6">
+               <div class="col-md-4">
                   <label>Begins at</label>
                   <input type="datetime-local" name="begin_date" id="begin_date" value="2021-01-01T00:00" />
                </div>
                <!-- columns 5 to 10 -->
+               <div class="col-md-4">
+                  <button id="submit">Submit</button>
+                  <button id="display">Display</button>
+
+               </div>
             </div>
             <!-- row -->
             <br />  <!-- a little vertical space -->
@@ -76,7 +81,7 @@
                -->
             <div class="row">
                <div class="col-md-12">
-                  <table class="control_time_table">
+                  <table class="control_time_table" id="mainTable">
                      <tr>
                         <th> Miles </th>
                         <th> Km </th>
@@ -93,6 +98,8 @@
                         <!-- Dist (km) -->
                         <td><input name="km" type="number" step="0.00001"
                            min="0" max="1100" /> </td>
+
+
                         <!-- Location (optional) -->
                         <td><input name="location" type="text"
                            placeholder="Optional location name"
@@ -111,9 +118,37 @@
             </div>
             <!-- row -->
          </form>
+
          <script type="text/javascript">
             var SCRIPT_ROOT = {{ request.script_root|tojson|safe }} ;
             var TIME_CALC_URL = SCRIPT_ROOT + "/_calc_times";
+
+            function updateRow(data){
+              console.log('updated row');
+              var table = $('#mainTable');
+              // var row = $('tr', table)
+              //var row = table.find('tr').eq(i);
+              //console.log('row: '+row);
+              var index = Number(data.index);
+              var location = data.location;
+              var open = data.open_time;
+              var close = data.close_time;
+            //  $("input[name='location']", row).val(location);
+              var loc = table.find("input[name='location']").eq(index);
+              loc.val(location);
+              var op = table.find("input[name='open']").eq(index);
+              op.val(open);
+              var cl = table.find("input[name='close']").eq(index);
+              cl.val(close);
+            }
+
+            function updateTable(dataList){
+              console.log('updated table.');
+              for (var i in dataList){
+                var data = dataList[i];
+                updateRow(data);
+              }
+            }
 
             // FIX ME!
             // Right now, only the kilometers are passed
@@ -121,8 +156,20 @@
             // View flask_brevets.py for details.
             function calc_times(control) {
               var km = control.find("input[name='km']").val();
+              console.log('km is: '+km); //works
+
+              var dist = $("select[name='distance'] option:selected").val();//added
+              console.log('distance is: '+dist);
+
+              var begin = $("input[name='begin_date']").val();
+              console.log('begin date: '+begin);
+
               var open_time_field = control.find("input[name='open']");
+              console.log('open time: '+open_time_field);
               var close_time_field = control.find("input[name='close']");
+              console.log('close time: '+close_time_field);
+
+
 
               $.getJSON(TIME_CALC_URL, {km: km}).done(
                 function(data) {
@@ -140,6 +187,8 @@
                  console.log(err);
                });
             }
+
+
 
             $(document).ready(function(){
              // Do the following when the page is finished loading
@@ -167,6 +216,83 @@
                        // Then calculate times for this entry
                        calc_times(control_entry);
                     });
+
+                  $('#submit').click(
+                    function(e) {
+                      e.preventDefault();
+
+
+                      var km_list = [];
+                      $("input[name='km']").each(function(index){
+                        var km = $(this).val();
+                        if( km ){
+                          km_list.push({index: index, km:km});
+                        }
+                      });
+
+                      var control = $(this).parents(".control")
+
+                      var distance = $("select[name='distance'] option:selected").val();
+                      var begin_date = $("input[name='begin_date']").val();
+
+                      console.log('distance: '+distance+' begin date: '+begin_date);
+
+                      var data = {
+                        'km_list': km_list,
+                        'distance': distance,
+                        'begin_date': begin_date
+                       };
+
+                      //console.log('!!!clicked submit '+'km: '+km+' open: ///////'+open_time_field+' close: '+close_time_field);
+
+                      // TODO: collect km values, open time values, close time values
+                      // $.post(TIME_CALC_URL, data, function(res){
+                      //     //
+                      // }, "json");
+                      $.ajax({
+                          url: TIME_CALC_URL,
+                          dataType: 'json',
+                          type: 'post',
+                          contentType: 'application/json',
+                          data: JSON.stringify(data),
+                          success: function( data1, textStatus, jQxhr ){
+                              var dataList = data1.result;
+                              console.log('datalist: '+dataList);
+                              // alert('>> '+res.open_time);
+                              // $("input[name='open']").val(res.open_time);
+                              // open_time_field.val(res.open_time);
+                              // var dataList = [
+                              //   {
+                              //     'open_time': "2021-05-01T00:00",
+                              //     'close_time': "2021-07-01T00:00",
+                              //     'location': "Eugene"
+                              //   }
+                              // ]
+                              // var dataList = [
+                              //   {
+                              //     'open_time': res.open_time,
+                              //     'close_time': res.close_time,
+                              //     'location': "Eugene"
+                              //   }
+                              // ]
+                              // for()
+                              updateTable(dataList);
+
+
+                          },
+                          error: function( jqXhr, textStatus, errorThrown ){
+                              console.log( errorThrown );
+                          }
+                      });
+                    }
+                  );
+
+                  $('#display').click(
+                    function(e)
+                    {
+                      e.preventDefault();
+                    }
+                  );
 
                });
 
