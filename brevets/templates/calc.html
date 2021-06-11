@@ -178,21 +178,37 @@
             // you need to pass much more!
             // View flask_brevets.py for details.
             function calc_times(control) {
+
+              var distance = $("select[name='distance'] option:selected").val();
+              var begin_date = $("input[name='begin_date']").val();
+
               var km = control.find("input[name='km']").val();
-              console.log('km is: '+km); //works
-
-              var dist = $("select[name='distance'] option:selected").val();//added
-              console.log('distance is: '+dist);
-
-              var begin = $("input[name='begin_date']").val();
-              console.log('begin date: '+begin);
-
               var open_time_field = control.find("input[name='open']");
-              console.log('open time: '+open_time_field);
               var close_time_field = control.find("input[name='close']");
-              console.log('close time: '+close_time_field);
 
 
+
+              // var data = {
+              //   'km': km,
+              //   'distance': distance,
+              //   'begin_date': begin_date
+              //  };
+              //
+              // $.ajax({
+              //     url: TIME_CALC_URL,
+              //     dataType: 'json',
+              //     type: 'post',
+              //     contentType: 'application/json',
+              //     data: JSON.stringify(data),
+              //     success: function( data1, textStatus, jQxhr ){
+              //         var dataList = data1.result;
+              //         console.log('datalist: '+dataList);
+              //         updateTable(dataList);
+              //     },
+              //     error: function( jqXhr, textStatus, errorThrown ){
+              //         console.log( errorThrown );
+              //     }
+              // });
 
               $.getJSON(TIME_CALC_URL, {km: km}).done(
                 function(data) {
@@ -224,6 +240,7 @@
                        var control_entry = $(this).parents(".control")
                        var target = control_entry.find("input[name='km']");
                        target.val( km );
+                       // var target_2 = control_entry.find("input[name='open']");
                        // Then calculate times for this entry
                        calc_times(control_entry);
                     });
@@ -240,10 +257,10 @@
                        calc_times(control_entry);
                     });
 
+
                   $('#submit').click(
                     function(e) {
                       e.preventDefault();
-
 
                       var km_list = [];
                       $("input[name='km']").each(function(index){
@@ -252,13 +269,9 @@
                           km_list.push({index: index, km:km});
                         }
                       });
-
                       var control = $(this).parents(".control")
-
                       var distance = $("select[name='distance'] option:selected").val();
                       var begin_date = $("input[name='begin_date']").val();
-
-                      console.log('distance: '+distance+' begin date: '+begin_date);
 
                       var data = {
                         'km_list': km_list,
@@ -266,12 +279,6 @@
                         'begin_date': begin_date
                        };
 
-                      //console.log('!!!clicked submit '+'km: '+km+' open: ///////'+open_time_field+' close: '+close_time_field);
-
-                      // TODO: collect km values, open time values, close time values
-                      // $.post(TIME_CALC_URL, data, function(res){
-                      //     //
-                      // }, "json");
                       $.ajax({
                           url: TIME_CALC_URL,
                           dataType: 'json',
@@ -281,27 +288,7 @@
                           success: function( data1, textStatus, jQxhr ){
                               var dataList = data1.result;
                               console.log('datalist: '+dataList);
-                              // alert('>> '+res.open_time);
-                              // $("input[name='open']").val(res.open_time);
-                              // open_time_field.val(res.open_time);
-                              // var dataList = [
-                              //   {
-                              //     'open_time': "2021-05-01T00:00",
-                              //     'close_time': "2021-07-01T00:00",
-                              //     'location': "Eugene"
-                              //   }
-                              // ]
-                              // var dataList = [
-                              //   {
-                              //     'open_time': res.open_time,
-                              //     'close_time': res.close_time,
-                              //     'location': "Eugene"
-                              //   }
-                              // ]
-                              // for()
                               updateTable(dataList);
-
-
                           },
                           error: function( jqXhr, textStatus, errorThrown ){
                               console.log( errorThrown );
