@@ -76,10 +76,11 @@ def _calc_times():
     for info in km_list:
         print(info)
         n_km = float(info['km'])
-        open_time = acp_times.open_time(n_km, distance, begin_date).format('YYYY-MM-DDTHH:mm')
+        # open_time = acp_times.open_time(n_km, distance, begin_date).format('YYYY-MM-DDTHH:mm')
 
-        close_time = acp_times.close_time(n_km, distance, begin_date).format('YYYY-MM-DDTHH:mm')
-
+        # close_time = acp_times.close_time(n_km, distance, begin_date).format('YYYY-MM-DDTHH:mm')
+        open_time="2021-05-01T00:00"
+        close_time="2021-07-01T00:00"
         result.append(
             {
                 "index": int(info['index']),
@@ -90,6 +91,20 @@ def _calc_times():
 
 
     print(result)
+    return flask.jsonify(result=result)
+
+
+#############
+
+app.debug = CONFIG.DEBUG
+if app.debug:
+    app.logger.setLevel(logging.DEBUG)
+
+if __name__ == "__main__":
+    print("Opening for global access on port {}".format(CONFIG.PORT))
+    app.run(port=CONFIG.PORT, host="0.0.0.0")
+
+
 
     # import os
     # from flask import Flask, redirect, url_for, request, render_template
@@ -130,7 +145,7 @@ def _calc_times():
     # open_time="2021-05-01T00:00"
     # close_time="2021-07-01T00:00"
     # result = {"open_time": open_time, "close_time": close_time}
-    return flask.jsonify(result=result)
+
 
 
 #############
