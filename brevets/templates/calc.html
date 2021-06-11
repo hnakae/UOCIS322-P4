@@ -178,21 +178,37 @@
             // you need to pass much more!
             // View flask_brevets.py for details.
             function calc_times(control) {
+
+              var distance = $("select[name='distance'] option:selected").val();
+              var begin_date = $("input[name='begin_date']").val();
+
               var km = control.find("input[name='km']").val();
-              console.log('km is: '+km); //works
-
-              var dist = $("select[name='distance'] option:selected").val();//added
-              console.log('distance is: '+dist);
-
-              var begin = $("input[name='begin_date']").val();
-              console.log('begin date: '+begin);
-
               var open_time_field = control.find("input[name='open']");
-              console.log('open time: '+open_time_field);
               var close_time_field = control.find("input[name='close']");
-              console.log('close time: '+close_time_field);
 
 
+
+              // var data = {
+              //   'km': km,
+              //   'distance': distance,
+              //   'begin_date': begin_date
+              //  };
+              //
+              // $.ajax({
+              //     url: TIME_CALC_URL,
+              //     dataType: 'json',
+              //     type: 'post',
+              //     contentType: 'application/json',
+              //     data: JSON.stringify(data),
+              //     success: function( data1, textStatus, jQxhr ){
+              //         var dataList = data1.result;
+              //         console.log('datalist: '+dataList);
+              //         updateTable(dataList);
+              //     },
+              //     error: function( jqXhr, textStatus, errorThrown ){
+              //         console.log( errorThrown );
+              //     }
+              // });
 
               $.getJSON(TIME_CALC_URL, {km: km}).done(
                 function(data) {
@@ -203,8 +219,6 @@
                    // so don't worry about those.
                    open_time_field.val(moment(times.open).format("YYYY-MM-DDTHH:mm"));
                    close_time_field.val(moment(times.close).format("YYYY-MM-DDTHH:mm"));
-                   var index0 = 4;
-                   f(index0);
                  }
                ).fail(function(err){
                  // In case you get an error...
@@ -213,46 +227,7 @@
                });
             }
 
-            function f(index0) {
-               var km_list = [];
-               $("input[name='km']").each(function (index) {
-                  var km = $(this).val();
-                  if (index0 !== undefined) {
-                     if (index0 === index) {
-                        km_list.push({ index: index, km: km });
-                     }
-                  } else {
-                     if (km) {
-                        km_list.push({ index: index, km: km });
-                     }
-                  }
-               });
-               var control = $(this).parents(".control")
-               var distance = $("select[name='distance'] option:selected").val();
-               var begin_date = $("input[name='begin_date']").val();
 
-               console.log('distance: ' + distance + ' begin date: ' + begin_date);
-               var data = {
-                  'km_list': km_list,
-                  'distance': distance,
-                  'begin_date': begin_date
-               };
-               $.ajax({
-                  url: TIME_CALC_URL,
-                  dataType: 'json',
-                  type: 'post',
-                  contentType: 'application/json',
-                  data: JSON.stringify(data),
-                  success: function (data1, textStatus, jQxhr) {
-                     var dataList = data1.result;
-                     console.log('datalist: ' + dataList);
-                     updateTable(dataList);
-                  },
-                  error: function (jqXhr, textStatus, errorThrown) {
-                     console.log(errorThrown);
-                  }
-               });
-            }
 
             $(document).ready(function(){
              // Do the following when the page is finished loading
@@ -265,6 +240,7 @@
                        var control_entry = $(this).parents(".control")
                        var target = control_entry.find("input[name='km']");
                        target.val( km );
+                       // var target_2 = control_entry.find("input[name='open']");
                        // Then calculate times for this entry
                        calc_times(control_entry);
                     });
@@ -281,10 +257,43 @@
                        calc_times(control_entry);
                     });
 
+
                   $('#submit').click(
                     function(e) {
                       e.preventDefault();
-                      f();
+
+                      var km_list = [];
+                      $("input[name='km']").each(function(index){
+                        var km = $(this).val();
+                        if( km ){
+                          km_list.push({index: index, km:km});
+                        }
+                      });
+                      var control = $(this).parents(".control")
+                      var distance = $("select[name='distance'] option:selected").val();
+                      var begin_date = $("input[name='begin_date']").val();
+
+                      var data = {
+                        'km_list': km_list,
+                        'distance': distance,
+                        'begin_date': begin_date
+                       };
+
+                      $.ajax({
+                          url: TIME_CALC_URL,
+                          dataType: 'json',
+                          type: 'post',
+                          contentType: 'application/json',
+                          data: JSON.stringify(data),
+                          success: function( data1, textStatus, jQxhr ){
+                              var dataList = data1.result;
+                              console.log('datalist: '+dataList);
+                              updateTable(dataList);
+                          },
+                          error: function( jqXhr, textStatus, errorThrown ){
+                              console.log( errorThrown );
+                          }
+                      });
                     }
                   );
 
