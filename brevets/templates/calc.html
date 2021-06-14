@@ -30,7 +30,7 @@
    <link rel="stylesheet" href="/static/css/calc.css" />
    <body>
       <div class="container">
-         <h2>Mongo Test</h2>
+         <!-- <h2>Mongo Test</h2>
          <div>
              <form method="POST" action="/insert/">
                  <div>
@@ -52,7 +52,7 @@
                  <hl />
              </div>
              {% endfor %}
-         </div>
+         </div> -->
          <h1>ACP Brevet Times</h1>
          <p>This worksheet is for ACP-sanctioned brevets between 200 and 1000 kilometers.</p>
          <!--
@@ -178,53 +178,55 @@
             // you need to pass much more!
             // View flask_brevets.py for details.
             function calc_times(control) {
-
+              console.log("Called calc_times");
               var distance = $("select[name='distance'] option:selected").val();
+              console.log("Distance is: "+distance);
+
               var begin_date = $("input[name='begin_date']").val();
+              console.log("Begin date: "+begin_date);
 
               var km = control.find("input[name='km']").val();
+              //fix
               var open_time_field = control.find("input[name='open']");
               var close_time_field = control.find("input[name='close']");
 
+              console.log("km: "+km);
 
+              $.ajax({
+                  url: TIME_CALC_URL,
+                  dataType: 'json',
+                  type: 'post',
+                  contentType: 'application/json',
+                  // {index: index, km:km}
+                  data: JSON.stringify({km_list: [{index:0, km:km}], distance:distance, begin_date: begin_date}),
+                  success: function( data1, textStatus, jQxhr ){
+                     console.log('called TIME_CALC_URL');
+                     var times = data1.result;
+                     console.log("Got a response: ");
+                     console.log("Response.open = " + times.open);
+                     // This part will automatically fill the open and close slots,
+                     // so don't worry about those.
+                     open_time_field.val(moment(times.open).format("YYYY-MM-DDTHH:mm"));
+                     close_time_field.val(moment(times.close).format("YYYY-MM-DDTHH:mm"));
+                  },
+                  error: function( jqXhr, textStatus, errorThrown ){
+                      console.log( errorThrown );
+                  }
+              });
 
-              // var data = {
-              //   'km': km,
-              //   'distance': distance,
-              //   'begin_date': begin_date
-              //  };
-              //
-              // $.ajax({
-              //     url: TIME_CALC_URL,
-              //     dataType: 'json',
-              //     type: 'post',
-              //     contentType: 'application/json',
-              //     data: JSON.stringify(data),
-              //     success: function( data1, textStatus, jQxhr ){
-              //         var dataList = data1.result;
-              //         console.log('datalist: '+dataList);
-              //         updateTable(dataList);
-              //     },
-              //     error: function( jqXhr, textStatus, errorThrown ){
-              //         console.log( errorThrown );
-              //     }
-              // });
+              // $.getJSON(TIME_CALC_URL, {km: km},
+              //   function(data) {
+              //     console.log('called TIME_CALC_URL');
+              //      var times = data.result;
+              //      console.log("Got a response: ");
+              //      console.log("Response.open = " + times.open);
+              //      // This part will automatically fill the open and close slots,
+              //      // so don't worry about those.
+              //      open_time_field.val(moment(times.open).format("YYYY-MM-DDTHH:mm"));
+              //      close_time_field.val(moment(times.close).format("YYYY-MM-DDTHH:mm"));
+              //    }
+              //  )
 
-              $.getJSON(TIME_CALC_URL, {km: km}).done(
-                function(data) {
-                   var times = data.result;
-                   console.log("Got a response: ");
-                   console.log("Response.open = " + times.open);
-                   // This part will automatically fill the open and close slots,
-                   // so don't worry about those.
-                   open_time_field.val(moment(times.open).format("YYYY-MM-DDTHH:mm"));
-                   close_time_field.val(moment(times.close).format("YYYY-MM-DDTHH:mm"));
-                 }
-               ).fail(function(err){
-                 // In case you get an error...
-                 console.log("Error!");
-                 console.log(err);
-               });
             }
 
 
@@ -287,7 +289,7 @@
                           data: JSON.stringify(data),
                           success: function( data1, textStatus, jQxhr ){
                               var dataList = data1.result;
-                              console.log('datalist: '+dataList);
+                              // console.log('datalist: '+dataList);//fix
                               updateTable(dataList);
                           },
                           error: function( jqXhr, textStatus, errorThrown ){
@@ -297,12 +299,12 @@
                     }
                   );
 
-                  $('#display').click(
-                    function(e)
-                    {
-                      e.preventDefault();
-                    }
-                  );
+                  // $('#display').click(
+                  //   function(e)
+                  //   {
+                  //     e.preventDefault();
+                  //   }
+                  // );
 
                });
 

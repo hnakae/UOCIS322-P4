@@ -60,15 +60,19 @@ def _calc_times():
     described at https://rusa.org/octime_alg.html.
     Expects one URL-encoded argument, the number of miles.
     """
+    print("------------------called _calc_times")
+
     content = request.get_json()
-    print(content)
+    # print("content: "+content)
+    print(str(content))
 
     km_list = content['km_list'];
     distance = float(content['distance']);
     begin_date = content['begin_date'];
+    print(begin_date);
+
     # dt_begin_date = arrow.get(begin_date, 'YYYY-MM-DDTHH:mm');
 
-    print(begin_date);
 
     result = [];
 
@@ -76,11 +80,11 @@ def _calc_times():
     for info in km_list:
         print(info)
         n_km = float(info['km'])
-        # open_time = acp_times.open_time(n_km, distance, begin_date).format('YYYY-MM-DDTHH:mm')
+        open_time = acp_times.open_time(n_km, distance, begin_date).format('YYYY-MM-DDTHH:mm')
 
-        # close_time = acp_times.close_time(n_km, distance, begin_date).format('YYYY-MM-DDTHH:mm')
-        open_time="2021-05-01T00:00"
-        close_time="2021-07-01T00:00"
+        close_time = acp_times.close_time(n_km, distance, begin_date).format('YYYY-MM-DDTHH:mm')
+        # open_time="2021-05-01T00:00"
+        # close_time="2021-07-01T00:00"
         result.append(
             {
                 "index": int(info['index']),
@@ -88,7 +92,6 @@ def _calc_times():
                 "close_time": close_time
             }
         )
-
 
     print(result)
     return flask.jsonify(result=result)
